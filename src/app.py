@@ -11,8 +11,13 @@ import os
 import secrets
 import base64
 from datetime import datetime, timedelta
+from pathlib import Path
 
 load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
@@ -163,18 +168,18 @@ def validate_author(author_id: int, session_token: str) -> bool:
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 graph_QL_app = GraphQLRouter(
     schema, 
-    graphiql=False,  #interface
+    graphql_ide=None,
     context_getter=get_context,  # Custom context for request handling
 )
 app.include_router(graph_QL_app, prefix="/graphql")
 
 @app.get("/")
 def homepage():
-    return FileResponse("templates/index.html")
+    return FileResponse(TEMPLATES_DIR / "index.html")
 
 @app.get("/post")
 def post_detail(post_id: int):
-    return FileResponse("templates/post_detail.html")
+    return FileResponse(TEMPLATES_DIR / "post_detail.html")
 
 @app.get("/login")
 def login_page(request: Request):
@@ -182,7 +187,7 @@ def login_page(request: Request):
     
     if session_token and validate_session(session_token):
         return RedirectResponse(url="/", status_code=302)
-    return FileResponse("templates/login.html")
+    return FileResponse(TEMPLATES_DIR / "login.html")
 
 @app.post("/login")
 def login(request: dict):
@@ -216,11 +221,11 @@ def profile(request: Request):
     if not session_token or not validate_session(session_token):
         return RedirectResponse(url="/login", status_code=302)
      
-    return FileResponse("templates/profile.html")
+    return FileResponse(TEMPLATES_DIR / "profile.html")
 
 @app.get("/register")
 def register_page():
-    return FileResponse("templates/register.html")
+    return FileResponse(TEMPLATES_DIR / "register.html")
 
 @app.post("/register")
 def register(request: dict):
@@ -275,7 +280,7 @@ def create_post_page(request: Request):
     if not session_token or not validate_session(session_token):
         return RedirectResponse(url="/login", status_code=302)
     
-    return FileResponse("templates/create_post.html")
+    return FileResponse(TEMPLATES_DIR / "create_post.html")
 
 def user_exists(username: str) -> bool:
     with connect_to_db() as conn:
@@ -355,4 +360,4 @@ def destroy_session(session_token: str):
 
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

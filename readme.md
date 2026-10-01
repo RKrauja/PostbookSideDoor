@@ -3,7 +3,7 @@
 This challenge is a GraphQL IDOR exploitation. The goal of this challenge is to find the flag, that is located in an exposed password field. Your goal is to find a GraphQL query endpoint that reveals the blog users passwords. One of these passwords has the challenge flag hidden inside of it.
 # Flag
 
-flag{WASNTTHISASHITSHOW}
+FIRE{GR4PHQL_1D0R_S1D3_D00R}
 
 # Description
 
@@ -94,7 +94,7 @@ Response:
 
 5. Loop through each password by decoding it, until you find the flag:
 
-Encoded flag: `QsO4cmdlIFNtw7hycmVicsO4ZHNlbjpmbGFne1dBU05UVEhJU0FTSElUU0hPV30=` => Decoded: `Børge Smørrebrødsen:flag{WASNTTHISASHITSHOW}`
+Encoded flag: `QsO4cmdlIFNtw7hycmVicsO4ZHNlbjpGSVJFe0dSNFBIUUxfMUQwUl9TMUQzX0QwMFJ9` => Decoded: `Børge Smørrebrødsen:FIRE{GR4PHQL_1D0R_S1D3_D00R}`
 
 **Possible Solution 2**
 
@@ -184,7 +184,7 @@ That returns:
 2. Make sure you have Docker Engine running.
 3. Run the following command to start the challenge:
 ```bash
-docker compose build --no-cache;
-docker compose up -d;
+docker compose build --no-cache
+docker compose up -d
 ```
 4. The challenge should be running on `http://localhost:8080`.

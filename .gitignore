@@ -1,5 +1,5 @@
-.venv
-__pychache__
 .env
-# requirements.txt
-*.pyc
+.idea/
+.venv/
+__pycache__/
+*.py[cod]

